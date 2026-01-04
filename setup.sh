@@ -1,35 +1,37 @@
 #!/bin/bash
 
-# ۱. پاکسازی و توقف سرویس‌های پیش‌فرض که پورت را اشغال کرده‌اند
+# ۱. کشتن بی‌رحمانه تمام سرویس‌های مخفی و قبلی
 sudo systemctl stop ollama || true
-pkill -f ollama || true
-pkill -f cloudflared || true
+sudo systemctl disable ollama || true
+pkill -9 ollama || true
+pkill -9 cloudflared || true
 
-# ۲. نصب (اگر قبلاً نصب نشده باشد سریع رد می‌شود)
-curl -fsSL https://ollama.com/install.sh | sh
-
-# ۳. تنظیم متغیرهای محیطی برای دسترسی عمومی و اجرای دستی
-# این خط بسیار حیاتی است تا کلودفلر بتواند پورت را ببیند
+# ۲. تنظیم محیط برای دسترسی کاملاً آزاد (بسیار حیاتی)
 export OLLAMA_HOST=0.0.0.0:11434
 export OLLAMA_ORIGINS="*"
 
-echo "Starting Ollama Engine in Public Mode..."
+# ۳. اجرای موتور به صورت مستقیم (نه به عنوان سرویس سیستمی)
+echo "Starting Ollama in Open-Access mode..."
 nohup ollama serve > /tmp/ollama.log 2>&1 &
 
+# ۴. صبر برای بالا آمدن موتور
 sleep 20
 
-# ۴. دانلود مدل‌ها
+# ۵. دانلود مدل‌ها (چون قبلاً دانلود کردی، سریع رد می‌شود)
 ollama pull gemma3:1b
 ollama pull qwen2.5:0.5b
 
-# ۵. اجرای تونل کلودفلر
+# ۶. اجرای تونل کلودفلر
 curl -L "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64" -o /tmp/bridge-x
 chmod +x /tmp/bridge-x
 
 TOKEN="eyJhIjoiOTYyMjQyYzM5YTIzMmFlYWJhMWQ2NmQ5MGVmNTc3OTkiLCJ0IjoiZmE0NmJmMzctMjcwOC00NWQ2LTlkN2UtNGQyYTQ3ZjNkZWRhIiwicyI6IlpURmxOVE5qWTJVdE5qaGhPUzAwT0RKa0xXSmpaakV0WWpsbVkyTTNZemd6WmpCbCJ9"
 
-# اجرای تونل با اتصال مستقیم به لوکال هاست
+echo "Connecting tunnel..."
 ./tmp/bridge-x tunnel --no-autoupdate run --token $TOKEN > /dev/null 2>&1 &
 
-echo "System is LIVE! Try connecting now."
+echo "-------------------------------------------"
+echo "✅ SERVER IS FULLY PUBLIC NOW"
+echo "-------------------------------------------"
+
 while true; do sleep 100; done
