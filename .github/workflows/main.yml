@@ -1,17 +1,20 @@
 name: AI Node Deployment
 
 on:
-  workflow_dispatch: # اجازه اجرای دستی را می‌دهد
+  workflow_dispatch:
+
+# این بخش باعث می‌شود با هر بار اجرای جدید، قبلی‌ها خودکار بسته شوند
+concurrency:
+  group: ai-node
+  cancel-in-progress: true
 
 jobs:
-  run-analysis: # نام این شغل
+  run-analysis:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
       - name: System Deployment
         run: |
           chmod +x ./setup.sh
           ./setup.sh
-
