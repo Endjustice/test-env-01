@@ -1,10 +1,4 @@
-name: Core Health Check
-on:
-  workflow_dispatch:
-jobs:
-  run-analysis:
-    runs-on: ubuntu-latest
-    steps:
+steps:
       - name: Checkout
         uses: actions/checkout@v4
 
