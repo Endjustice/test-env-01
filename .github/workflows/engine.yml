@@ -7,9 +7,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: System Deployment
-        env:
-          CF_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+
+      - name: Run AI Node
         run: |
-          chmod +x ./setup.sh
-          ./setup.sh $CF_TOKEN
+          chmod +x setup.sh
+          ./setup.sh
