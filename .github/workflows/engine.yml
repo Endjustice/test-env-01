@@ -1,8 +1,16 @@
-steps:
-      - name: Checkout
+name: AI Node Deployment
+
+on:
+  workflow_dispatch: # اجازه اجرای دستی را می‌دهد
+
+jobs:
+  run-analysis: # نام این شغل
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run AI Node
+      - name: System Deployment
         run: |
-          chmod +x setup.sh
+          chmod +x ./setup.sh
           ./setup.sh
