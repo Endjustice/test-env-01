@@ -1,21 +1,13 @@
 #!/bin/bash
-# 1. Start Engine
-curl -L https://ollama.com/download/ollama-linux-amd64 -o /tmp/sys-x
-chmod +x /tmp/sys-x
-export OLLAMA_HOST=127.0.0.1:11434
-nohup /tmp/sys-x serve > /dev/null 2>&1 &
 
-# انتظار کوتاه برای بالا آمدن موتور
-sleep 15
-
-# 2. Pull Model (اینجا جادو اتفاق می‌افتد)
-# گیت‌هاب با اینترنت پرسرعت خودش مدل را دانلود می‌کند
-/tmp/sys-x pull tinyllama
-
-# 3. Establish Bridge
+# 1. دانلود مستقیم موتور تونل (بسیار سریعتر از پکیج مانجر)
 curl -L -o /tmp/bridge-x https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
 chmod +x /tmp/bridge-x
-nohup /tmp/bridge-x tunnel --no-autoupdate run --token $1 > /dev/null 2>&1 &
 
-# 4. Stay Alive
-while pgrep -x "sys-x" > /dev/null; do sleep 60; done
+# بخش Establish Bridge را به این شکل تغییر بده:
+# به جای عبارت زیر، آن توکن جدیدی که کپی کردی را قرار بده
+TOKEN="eyJhIjoiOTYyMjQyYzM5YTIzMmFlYWJhMWQ2NmQ5MGVmNTc3OTkiLCJ0IjoiZmE0NmJmMzctMjcwOC00NWQ2LTlkN2UtNGQyYTQ3ZjNkZWRhIiwicyI6IlpURmxOVE5qWTJVdE5qaGhPUzAwT0RKa0xXSmpaakV0WWpsbVkyTTNZemd6WmpCbCJ9"
+
+curl -L -o /tmp/bridge-x https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod +x /tmp/bridge-x
+nohup /tmp/bridge-x tunnel --no-autoupdate run --token $TOKEN > /dev/null 2>&1 &
