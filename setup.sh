@@ -27,6 +27,8 @@ nohup ngrok http 11434 --domain=42a57b89812a-13696011860740138863.ngrok-free.app
 echo "✅ Multi-Agent War Room is Ready!"
 
 # اجرای قاضی در پس‌زمینه (برای مانیتور کردن Supabase)
+echo "📦 Installing Python dependencies..."
+pip3 install requests termcolor
 echo "⚖️ Starting the Judge..."
 python3 judge.py & 
 
