@@ -3,9 +3,9 @@ import time
 import requests
 from termcolor import colored
 
-# تنظیمات اتصال
-SUPABASE_URL = "https://tljmmxjtvgeqhkspjuoc.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." # کلید کامل خودت را بگذار
+# این یعنی برو از تنظیمات گیت‌هاب بردار
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 OLLAMA_URL = "http://localhost:11434" # چون در همان سرور اجرا می‌شود
 
 HEADERS = {
@@ -16,10 +16,21 @@ HEADERS = {
 
 def get_pending_task():
     """خواندن اولین دستور در انتظار از دیتابیس"""
-    url = f"{SUPABASE_URL}/rest/v1/ai_queue?status=eq.pending&limit=1"
-    res = requests.get(url, headers=HEADERS)
-    data = res.json()
-    return data[0] if data else None
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/ai_queue?status=eq.pending&limit=1"
+        res = requests.get(url, headers=HEADERS)
+        data = res.json()
+        
+        # اگر خطا در پاسخ دیتابیس بود (مثلاً پیام امنیتی)
+        if isinstance(data, dict) and "message" in data:
+            print(colored(f"❌ خطای دیتابیس: {data['message']}", "red"))
+            return None
+            
+        return data[0] if (data and isinstance(data, list)) else None
+    except Exception as e:
+        print(f"Error fetching task: {e}")
+        return None
+
 
 def update_task(task_id, response, status):
     """به‌روزرسانی وضعیت و پاسخ در دیتابیس"""
