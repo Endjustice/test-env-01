@@ -3,7 +3,7 @@ name: AI Node Deployment
 on:
   workflow_dispatch:
 
-# این بخش باعث می‌شود با هر بار اجرای جدید، قبلی‌ها خودکار بسته شوند
+# جلوگیری از تداخل اجراهای همزمان
 concurrency:
   group: ai-node
   cancel-in-progress: true
@@ -14,7 +14,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
       - name: System Deployment
+        # در اینجا متغیرها را به محیط اجرای سیستم معرفی می‌کنیم
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
           chmod +x ./setup.sh
           ./setup.sh
+          
