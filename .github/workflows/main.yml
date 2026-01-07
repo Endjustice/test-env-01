@@ -1,17 +1,21 @@
-name: AI Node Deployment
-
+name: On-Demand AI Judge
 on:
+<<<<<<< HEAD
   workflow_dispatch:
 
 # جلوگیری از تداخل اجراهای همزمان
+=======
+  repository_dispatch:
+    types: [trigger-judge]
+>>>>>>> 302b7fb (Activate On-Demand Judge)
 concurrency:
   group: ai-node
   cancel-in-progress: true
-
 jobs:
   run-analysis:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -20,6 +24,13 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+=======
+      - uses: actions/checkout@v4
+      - name: System Deployment
+        env:
+          SUPABASE_URL: \${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: \${{ secrets.SUPABASE_KEY }}
+>>>>>>> 302b7fb (Activate On-Demand Judge)
         run: |
           chmod +x ./setup.sh
           ./setup.sh
