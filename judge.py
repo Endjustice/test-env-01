@@ -9,40 +9,49 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
-def clean_and_get_latest():
+def get_task():
     try:
-        res = requests.get(f"{SUPABASE_URL}/rest/v1/ai_queue?status=eq.pending&order=created_at.desc", headers=HEADERS)
-        tasks = res.json()
-        if not tasks or not isinstance(tasks, list): return None
-        latest_task = tasks[0]
-        if len(tasks) > 1:
-            for old_task in tasks[1:]:
-                requests.delete(f"{SUPABASE_URL}/rest/v1/ai_queue?id=eq.{old_task['id']}", headers=HEADERS)
-        return latest_task
-    except: return None
+        # گرفتن آخرین تسک در انتظار
+        res = requests.get(f"{SUPABASE_URL}/rest/v1/ai_queue?status=eq.pending&order=created_at.desc&limit=1", headers=HEADERS)
+        data = res.json()
+        return data[0] if data and len(data) > 0 else None
+    except Exception as e:
+        print(f"Error fetching: {e}")
+        return None
 
 def update_db(id, ans, status):
-    requests.patch(f"{SUPABASE_URL}/rest/v1/ai_queue?id=eq.{id}", 
-                   json={"final_answer": ans, "status": status}, headers=HEADERS)
+    try:
+        requests.patch(f"{SUPABASE_URL}/rest/v1/ai_queue?id=eq.{id}", 
+                       json={"final_answer": ans, "status": status}, headers=HEADERS)
+        print(colored(f"✅ Task {id} updated to {status}", "blue"))
+    except: pass
 
 def main():
-    print(colored("⚖️ Pro Judge Active...", "green"))
-    idle_count = 0
-    while idle_count < 6:
-        task = clean_and_get_latest()
+    print(colored("⚖️ Judge is searching for cases...", "green"))
+    # قاضی ۵ بار تلاش می‌کند (هر ۳۰ ثانیه) تا اگر تاخیری در شبکه بود، پرونده را از دست ندهد
+    for attempt in range(10): 
+        task = get_task()
         if task:
-            idle_count = 0
             t_id = task['id']
+            print(colored(f"📝 Processing Case: {t_id}", "yellow"))
             update_db(t_id, None, "processing")
+            
             try:
+                # فراخوانی مدل AI
                 r = requests.post("http://localhost:11434/api/generate", 
-                                  json={"model": "llama3.2:3b", "prompt": task['super_prompt'], "stream": False}, timeout=300)
-                update_db(t_id, r.json().get("response", "Error"), "completed")
-            except: update_db(t_id, "Offline", "pending")
-        else:
-            idle_count += 1
-            time.sleep(30)
-    print(colored("💤 Shutting down.", "yellow"))
+                                  json={"model": "llama3.2:3b", "prompt": task['super_prompt'], "stream": False}, timeout=120)
+                full_response = r.json().get("response", "No response from AI")
+                update_db(t_id, full_response, "completed")
+                print(colored("💎 Mission Accomplished!", "cyan"))
+                return # کار تمام شد، برو بخواب
+            except Exception as e:
+                print(colored(f"❌ AI Error: {e}", "red"))
+                update_db(t_id, "Model Offline", "pending")
+        
+        print(f"Waiting for tasks... (Attempt {attempt+1}/10)")
+        time.sleep(15)
+
+    print(colored("💤 No cases found. Judge going to sleep.", "magenta"))
 
 if __name__ == "__main__":
     main()
